@@ -55,7 +55,17 @@ def agent_chat(data: AgentChatRequest):
                 tool_used = msg.name
                 try:
                     parsed = json.loads(msg.content)
-                    extracted_data = parsed
+                    if isinstance(parsed, dict):
+                        if isinstance(parsed.get('extracted_data'), dict):
+                            extracted_data = parsed['extracted_data']
+                        elif isinstance(parsed.get('data'), dict):
+                            extracted_data = parsed['data']
+                        elif isinstance(parsed.get('result'), dict):
+                            extracted_data = parsed['result']
+                        else:
+                            extracted_data = parsed
+                    else:
+                        extracted_data = {"raw": parsed}
                 except Exception:
                     extracted_data = {"raw": msg.content}
                 break  # Use first tool result

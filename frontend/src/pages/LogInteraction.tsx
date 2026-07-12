@@ -10,12 +10,38 @@ const normalizeValue = (value: unknown): string => {
   return String(value);
 };
 
+const flattenExtractedData = (data: Record<string, unknown>): Record<string, unknown> => {
+  if (!data || typeof data !== 'object') return {};
+
+  const candidates: Record<string, unknown>[] = [];
+  if (typeof data.extracted_data === 'object' && data.extracted_data !== null) candidates.push(data.extracted_data as Record<string, unknown>);
+  if (typeof data.data === 'object' && data.data !== null) candidates.push(data.data as Record<string, unknown>);
+  if (typeof data.result === 'object' && data.result !== null) candidates.push(data.result as Record<string, unknown>);
+  if (data.status && typeof data.status === 'string' && data.message && candidates.length > 0) {
+    return candidates[0];
+  }
+
+  if (Object.keys(data).some((key) => key.includes('_') || key.match(/doctor|hospital|special|product|objection|competitor|follow/i))) {
+    return data;
+  }
+
+  for (const value of Object.values(data)) {
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const nested = flattenExtractedData(value as Record<string, unknown>);
+      if (Object.keys(nested).length > 0) return nested;
+    }
+  }
+
+  return data;
+};
+
 const mapExtractedDataToForm = (data: Record<string, unknown>): Partial<Omit<Interaction, 'id'>> => {
   const extracted: Partial<Omit<Interaction, 'id'>> = {};
+  const normalized = flattenExtractedData(data);
 
   const setIfPresent = (key: string, field: keyof Omit<Interaction, 'id'>) => {
-    if (data[key] !== undefined && data[key] !== null) {
-      const value = normalizeValue(data[key]);
+    if (normalized[key] !== undefined && normalized[key] !== null) {
+      const value = normalizeValue(normalized[key]);
       if (field === 'visit_duration') {
         const parsed = Number(value.toString().replace(/[^0-9]/g, ''));
         extracted[field] = Number.isFinite(parsed) ? parsed : undefined;
@@ -30,29 +56,36 @@ const mapExtractedDataToForm = (data: Record<string, unknown>): Partial<Omit<Int
   setIfPresent('doctor_name', 'hcp_name');
   setIfPresent('hcp_name', 'hcp_name');
   setIfPresent('doctor', 'hcp_name');
+  setIfPresent('physician_name', 'hcp_name');
   setIfPresent('hospital', 'hospital');
   setIfPresent('clinic', 'hospital');
+  setIfPresent('hospital_name', 'hospital');
   setIfPresent('specialty', 'specialization');
   setIfPresent('specialization', 'specialization');
   setIfPresent('interaction_date', 'interaction_date');
   setIfPresent('date', 'interaction_date');
+  setIfPresent('visit_date', 'interaction_date');
   setIfPresent('meeting_type', 'meeting_type');
+  setIfPresent('visit_type', 'meeting_type');
   setIfPresent('visit_duration', 'visit_duration');
   setIfPresent('duration', 'visit_duration');
   setIfPresent('discussion_topics', 'discussion_topics');
   setIfPresent('topics', 'discussion_topics');
   setIfPresent('products_discussed', 'products_discussed');
   setIfPresent('products', 'products_discussed');
+  setIfPresent('drugs', 'products_discussed');
   setIfPresent('objections', 'objections');
   setIfPresent('objection', 'objections');
   setIfPresent('competitor_mentioned', 'competitor_mentioned');
   setIfPresent('competitor', 'competitor_mentioned');
   setIfPresent('notes', 'notes');
   setIfPresent('summary', 'notes');
+  setIfPresent('meeting_summary', 'notes');
   setIfPresent('sentiment', 'sentiment');
   setIfPresent('follow_up_required', 'follow_up_required');
   setIfPresent('follow_up_date', 'follow_up_date');
   setIfPresent('follow_up_plan', 'notes');
+  setIfPresent('confidence_score', 'confidence_score');
 
   return extracted;
 };
