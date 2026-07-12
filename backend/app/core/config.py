@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     
     # LLM Settings
     GROQ_API_KEY: Optional[str] = None
-    MODEL_NAME: str = "llama-3.3-70b-versatile"
+    MODEL_NAME: str = "llama-3.1-8b-instant"
     
     # Database (Placeholder)
     DATABASE_URL: Optional[str] = None

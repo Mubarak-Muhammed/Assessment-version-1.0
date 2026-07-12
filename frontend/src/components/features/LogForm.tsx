@@ -13,18 +13,12 @@ export const defaultInteractionForm: Omit<Interaction, 'id'> = {
   hospital: '',
   specialization: '',
   interaction_date: new Date().toISOString().split('T')[0],
-  interaction_time: '',
   meeting_type: 'In-person Visit',
-  attendees: '',
   visit_duration: 30,
   discussion_topics: '',
   products_discussed: '',
   objections: '',
   competitor_mentioned: '',
-  materials_shared: '',
-  samples_distributed: '',
-  outcomes: '',
-  follow_up_actions: '',
   follow_up_required: false,
   follow_up_date: '',
   notes: '',
@@ -96,16 +90,6 @@ export default function LogForm({ form: formProp, setForm: setFormProp }: LogFor
           <input className="form-input" type="date" name="interaction_date"
             value={form.interaction_date} onChange={handleChange} required />
         </div>
-        <div className="form-group">
-          <label className="form-label">Interaction Time</label>
-          <input className="form-input" type="time" name="interaction_time"
-            value={form.interaction_time ?? ''} onChange={handleChange} />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Attendees</label>
-          <input className="form-input" name="attendees" value={form.attendees ?? ''}
-            onChange={handleChange} placeholder="Enter names or search..." />
-        </div>
       </div>
 
       {/* ── Meeting Details ── */}
@@ -131,29 +115,6 @@ export default function LogForm({ form: formProp, setForm: setFormProp }: LogFor
           <label className="form-label">Products Discussed</label>
           <input className="form-input" name="products_discussed" value={form.products_discussed ?? ''}
             onChange={handleChange} placeholder="e.g. Cardivex 10mg, Statinex Plus" />
-        </div>
-      </div>
-      <div className="section-title">📦 Materials & Outcomes</div>
-      <div className="form-grid" style={{ marginBottom: '20px' }}>
-        <div className="form-group form-full">
-          <label className="form-label">Materials Shared / Samples Distributed</label>
-          <textarea className="form-textarea" name="materials_shared" value={form.materials_shared ?? ''}
-            onChange={handleChange} placeholder="List materials or samples shared during the meeting" />
-        </div>
-        <div className="form-group form-full">
-          <label className="form-label">Samples Distributed</label>
-          <input className="form-input" name="samples_distributed" value={form.samples_distributed ?? ''}
-            onChange={handleChange} placeholder="Enter sample names or counts" />
-        </div>
-        <div className="form-group form-full">
-          <label className="form-label">Outcomes</label>
-          <textarea className="form-textarea" name="outcomes" value={form.outcomes ?? ''}
-            onChange={handleChange} placeholder="Key outcomes or agreements..." />
-        </div>
-        <div className="form-group form-full">
-          <label className="form-label">Follow-up Actions</label>
-          <textarea className="form-textarea" name="follow_up_actions" value={form.follow_up_actions ?? ''}
-            onChange={handleChange} placeholder="Enter next steps or tasks..." />
         </div>
       </div>
 

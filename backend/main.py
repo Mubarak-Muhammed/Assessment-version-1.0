@@ -1,8 +1,15 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.endpoints import interaction, agent
 from app.database.session import engine, Base
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s %(levelname)s %(name)s - %(message)s'
+)
 
 # Create database tables
 Base.metadata.create_all(bind=engine)

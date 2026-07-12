@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store';
 import { sendMessage, addUserMessage, clearChat } from '../../store/chatSlice';
@@ -9,7 +9,7 @@ const SUGGESTIONS = [
   "Get doctor insights for Dr. Rajesh Kumar, Cardiologist",
   "Generate a follow-up plan for my last meeting with Dr. Mehta",
   "Summarize my notes: Met Dr. Singh, discussed side effects of Statinex, he showed interest",
-  "Edit interaction abc123: update interaction_time to 19:36 and add follow_up_actions",
+  "Edit interaction abc123: update sentiment to positive",
 ];
 
 function formatToolName(tool: string) {
@@ -133,7 +133,6 @@ interface ChatInterfaceProps {
   toolLabel?: string;
   toolDescription?: string;
   toolPlaceholder?: string;
-  activeTool?: string;
 }
 
 export default function ChatInterface({
@@ -142,12 +141,10 @@ export default function ChatInterface({
   toolLabel = 'AI Chat',
   toolDescription = 'Use the AI chat to run CRM tools.',
   toolPlaceholder = 'Describe your HCP meeting, ask for insights, or request a follow-up plan...',
-  activeTool,
 }: ChatInterfaceProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { messages, loading } = useSelector((s: RootState) => s.chat);
   const [input, setInput] = useState('');
-  const [helperOpen, setHelperOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastProcessedMessage = useRef<string>('');
@@ -157,11 +154,16 @@ export default function ChatInterface({
   }, [messages, loading]);
 
   useEffect(() => {
-    if (!onExtractedData) return;
-    const assistantMessage = [...messages].reverse().find((msg) => msg.role === 'assistant' && msg.extractedData && Object.keys(msg.extractedData).length > 0);
-    if (assistantMessage && assistantMessage.id !== lastProcessedMessage.current) {
-      lastProcessedMessage.current = assistantMessage.id;
-      onExtractedData(assistantMessage.extractedData!);
+    const assistantMessage = [...messages].reverse().find((msg) => msg.role === 'assistant');
+    if (!assistantMessage || assistantMessage.id === lastProcessedMessage.current) return;
+
+    lastProcessedMessage.current = assistantMessage.id;
+
+    if (assistantMessage.extractedData && Object.keys(assistantMessage.extractedData).length > 0 && onExtractedData) {
+      onExtractedData(assistantMessage.extractedData);
+    }
+
+    if (assistantMessage.toolUsed && ['log_interaction', 'edit_interaction'].includes(assistantMessage.toolUsed)) {
       dispatch(fetchInteractions());
     }
   }, [messages, onExtractedData, dispatch]);
@@ -174,8 +176,11 @@ export default function ChatInterface({
     dispatch(sendMessage(text));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   const useSuggestion = (s: string) => {
@@ -198,7 +203,7 @@ export default function ChatInterface({
         <div className="chat-header-avatar">🤖</div>
         <div className="chat-header-info">
           <h3>PharmaCRM AI Agent</h3>
-          <p>● Online · gemma2-9b-it via Groq</p>
+          <p>● Online · llama-3.1-8b-instant via Groq</p>
         </div>
         <button className="btn btn-ghost btn-sm" style={{ marginLeft: 'auto' }}
           onClick={() => dispatch(clearChat())} title="Clear chat">
@@ -234,7 +239,18 @@ export default function ChatInterface({
                   {msg.content}
                 </div>
                 {msg.toolUsed && (
-                  <span className="tool-badge">{formatToolName(msg.toolUsed)}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <span className="tool-badge">{formatToolName(msg.toolUsed)}</span>
+                    {msg.extractedData && Object.keys(msg.extractedData).length > 0 && (
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.06)', padding: '8px 10px', borderRadius: '8px' }}>
+                        {msg.toolUsed === 'log_interaction' && 'Structured CRM extraction completed.'}
+                        {msg.toolUsed === 'edit_interaction' && 'Interaction update completed.'}
+                        {msg.toolUsed === 'generate_follow_up_plan' && 'Follow-up plan generated.'}
+                        {msg.toolUsed === 'doctor_insights' && 'Doctor insights generated.'}
+                        {msg.toolUsed === 'meeting_summary_generator' && 'Meeting summary generated.'}
+                      </div>
+                    )}
+                  </div>
                 )}
                 {msg.extractedData && Object.keys(msg.extractedData).length > 0 && (
                   <ExtractedDataCard data={msg.extractedData} rawText={msg.content} />
@@ -265,75 +281,6 @@ export default function ChatInterface({
         <div style={{ fontSize: '13px', fontWeight: 700 }}>{toolLabel}</div>
         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{toolDescription}</div>
       </div>
-      {activeTool === 'edit_interaction' && (
-        <div style={{ marginBottom: '12px', borderRadius: '12px', background: '#faf8ff', border: '1px solid rgba(124, 92, 252, 0.15)' }}>
-          <button
-            type="button"
-            onClick={() => setHelperOpen((open) => !open)}
-            style={{
-              width: '100%',
-              textAlign: 'left',
-              padding: '12px 14px',
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 700,
-            }}
-          >
-            {helperOpen ? '▼' : '▶'} Editable CRM field helper
-          </button>
-          {helperOpen && !input.trim() && (
-            <div style={{ padding: '0 14px 14px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-              <div style={{ marginBottom: '8px' }}>Click a field name or type to update it:</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {[
-                  'hcp_name', 'hospital', 'specialization', 'interaction_date', 'interaction_time',
-                  'meeting_type', 'attendees', 'visit_duration', 'discussion_topics', 'products_discussed',
-                  'objections', 'competitor_mentioned', 'materials_shared', 'samples_distributed', 'outcomes',
-                  'follow_up_actions', 'follow_up_required', 'follow_up_date', 'notes', 'sentiment'
-                ].map((field) => (
-                  <button
-                    key={field}
-                    type="button"
-                    onClick={() => {
-                      setInput(`Update ${field} to `);
-                      textareaRef.current?.focus();
-                    }}
-                    style={{
-                      padding: '4px 8px',
-                      borderRadius: '999px',
-                      background: 'rgba(124, 92, 252, 0.12)',
-                      color: 'var(--text-secondary)',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      border: 'none',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'rgba(124, 92, 252, 0.2)';
-                      (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'rgba(124, 92, 252, 0.12)';
-                      (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)';
-                    }}
-                  >
-                    {field}
-                  </button>
-                ))}
-              </div>
-              <div style={{ marginTop: '10px' }}><strong>Example:</strong> Edit interaction abc123: update follow_up_actions to schedule a sample delivery call.</div>
-            </div>
-          )}
-          {helperOpen && input.trim() && (
-            <div style={{ padding: '0 14px 14px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-              <div style={{ marginBottom: '8px' }}>Type a request to update a CRM field. This helper is hidden once you start typing.</div>
-            </div>
-          )}
-        </div>
-      )}
       {/* Input */}
       <div className="chat-input-area">
         <div className="chat-input-row">
