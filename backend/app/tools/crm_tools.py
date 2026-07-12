@@ -43,13 +43,19 @@ Return ONLY a valid JSON object with these exact keys:
 - hospital (string): Hospital or clinic name
 - specialization (string): Medical specialty (e.g. Cardiology, Oncology)
 - meeting_type (string): Type of visit (e.g. In-person, Virtual, Conference)
+- visit_duration (number): How many minutes the meeting lasted
+- discussion_topics (string): Main topics covered in the meeting
 - products_discussed (string): Drug/product names mentioned
 - objections (string): Any concerns or objections raised by the HCP
 - competitor_mentioned (string): Any competitor products mentioned
 - follow_up_required (boolean): true if follow-up is needed
+- follow_up_date (string): Recommended follow-up date in ISO format if available
+- notes (string): Any additional notes or observations
 - sentiment (string): "positive", "neutral", or "negative"
 - confidence_score (number): 0.0 to 1.0 confidence in the extraction
 - summary (string): 2-sentence professional summary of the meeting
+
+If a value cannot be extracted, return an empty string for text fields, false for boolean fields, and 0.0 for numerical fields.
 
 Field Rep Notes:
 {conversation_text}
