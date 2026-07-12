@@ -129,12 +129,19 @@ function ExtractedDataCard({ data, rawText }: { data?: Record<string, unknown>; 
 
 interface ChatInterfaceProps {
   onExtractedData?: (data: Record<string, unknown>) => void;
+  onSuggestionSelected?: (suggestion: string) => void;
   toolLabel?: string;
   toolDescription?: string;
   toolPlaceholder?: string;
 }
 
-export default function ChatInterface({ onExtractedData, toolLabel = 'AI Chat', toolDescription = 'Use the AI chat to run CRM tools.', toolPlaceholder = 'Describe your HCP meeting, ask for insights, or request a follow-up plan...' }: ChatInterfaceProps) {
+export default function ChatInterface({
+  onExtractedData,
+  onSuggestionSelected,
+  toolLabel = 'AI Chat',
+  toolDescription = 'Use the AI chat to run CRM tools.',
+  toolPlaceholder = 'Describe your HCP meeting, ask for insights, or request a follow-up plan...',
+}: ChatInterfaceProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { messages, loading } = useSelector((s: RootState) => s.chat);
   const [input, setInput] = useState('');
@@ -168,7 +175,15 @@ export default function ChatInterface({ onExtractedData, toolLabel = 'AI Chat', 
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  const useSuggestion = (s: string) => { setInput(s); textareaRef.current?.focus(); };
+  const useSuggestion = (s: string) => {
+    if (onSuggestionSelected) onSuggestionSelected(s);
+    setInput(s);
+    textareaRef.current?.focus();
+    if (!loading) {
+      dispatch(addUserMessage(s));
+      dispatch(sendMessage(s));
+    }
+  };
 
   const formatTime = (ts: string) =>
     new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });

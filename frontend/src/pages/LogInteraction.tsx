@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 import LogForm, { defaultInteractionForm } from '../components/features/LogForm';
 import ChatInterface from '../components/features/ChatInterface';
+import type { RootState } from '../store';
 import type { Interaction } from '../types';
 
 const normalizeValue = (value: unknown): string => {
@@ -103,6 +105,7 @@ const mapExtractedDataToForm = (data: Record<string, unknown>): Partial<Omit<Int
 
 export default function LogInteraction() {
   const [searchParams] = useSearchParams();
+  const { interactions } = useSelector((s: RootState) => s.interaction);
   const [form, setForm] = useState<Omit<Interaction, 'id'>>(defaultInteractionForm);
 
   const activeTool = useMemo(() => searchParams.get('tool') || 'log_interaction', [searchParams]);
@@ -149,6 +152,35 @@ export default function LogInteraction() {
     }
   };
 
+  const findDoctorHistory = (doctorName: string): Partial<Omit<Interaction, 'id'>> => {
+    const match = interactions.find((item) => item.hcp_name.toLowerCase() === doctorName.toLowerCase());
+    if (!match) return {};
+    return {
+      hospital: match.hospital,
+      specialization: match.specialization,
+      competitor_mentioned: match.competitor_mentioned,
+      discussion_topics: match.discussion_topics,
+      products_discussed: match.products_discussed,
+      notes: match.notes,
+      sentiment: match.sentiment,
+      follow_up_required: match.follow_up_required,
+      follow_up_date: match.follow_up_date,
+    };
+  };
+
+  const handleSuggestionSelected = (suggestion: string) => {
+    const nameMatch = suggestion.match(/Dr\.\s+([A-Za-z]+)/i);
+    if (nameMatch) {
+      const doctorName = nameMatch[0];
+      const history = findDoctorHistory(doctorName.replace(/^Dr\.\s+/i, ''));
+      if (Object.keys(history).length > 0) {
+        setForm((prev) => ({ ...prev, ...history }));
+      }
+    }
+
+    setForm((prev) => ({ ...prev, notes: suggestion, meeting_type: prev.meeting_type || 'In-person Visit' }));
+  };
+
   return (
     <div className="page-container">
       <div className="page-header">
@@ -186,7 +218,13 @@ export default function LogInteraction() {
               <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-primary)' }}>Active</div>
             </div>
           </div>
-          <ChatInterface onExtractedData={handleExtractedData} toolLabel={toolConfig.label} toolDescription={toolConfig.description} toolPlaceholder={toolConfig.placeholder} />
+          <ChatInterface
+            onExtractedData={handleExtractedData}
+            onSuggestionSelected={(suggestion) => handleSuggestionSelected(suggestion)}
+            toolLabel={toolConfig.label}
+            toolDescription={toolConfig.description}
+            toolPlaceholder={toolConfig.placeholder}
+          />
         </div>
       </div>
     </div>
