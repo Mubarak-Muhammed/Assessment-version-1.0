@@ -214,7 +214,7 @@ export default function ChatInterface({ onExtractedData }: ChatInterfaceProps) {
                   <span className="tool-badge">{formatToolName(msg.toolUsed)}</span>
                 )}
                 {msg.extractedData && Object.keys(msg.extractedData).length > 0 && (
-                  <ExtractedDataCard data={msg.extractedData} />
+                  <ExtractedDataCard data={msg.extractedData} rawText={msg.content} />
                 )}
                 <span className="message-time">{formatTime(msg.timestamp)}</span>
               </div>
