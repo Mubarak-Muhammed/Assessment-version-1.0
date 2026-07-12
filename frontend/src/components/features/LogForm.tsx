@@ -8,7 +8,7 @@ import type { Interaction } from '../../types';
 const MEETING_TYPES = ['In-person Visit', 'Virtual Call', 'Conference', 'Workshop', 'Pharmacy Visit', 'Hospital Round'];
 const SPECIALIZATIONS = ['Cardiology', 'Oncology', 'Neurology', 'Gastroenterology', 'Endocrinology', 'Pulmonology', 'Nephrology', 'Rheumatology', 'General Practice', 'Other'];
 
-const defaultForm: Omit<Interaction, 'id'> = {
+export const defaultInteractionForm: Omit<Interaction, 'id'> = {
   hcp_name: '',
   hospital: '',
   specialization: '',
@@ -26,10 +26,17 @@ const defaultForm: Omit<Interaction, 'id'> = {
   confidence_score: 1.0,
 };
 
-export default function LogForm() {
+interface LogFormProps {
+  form?: Omit<Interaction, 'id'>;
+  setForm?: React.Dispatch<React.SetStateAction<Omit<Interaction, 'id'>>>;
+}
+
+export default function LogForm({ form: formProp, setForm: setFormProp }: LogFormProps = {}) {
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((s: RootState) => s.interaction);
-  const [form, setForm] = useState<Omit<Interaction, 'id'>>(defaultForm);
+  const [internalForm, setInternalForm] = useState<Omit<Interaction, 'id'>>(defaultInteractionForm);
+  const form = formProp ?? internalForm;
+  const setForm = setFormProp ?? setInternalForm;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -50,7 +57,7 @@ export default function LogForm() {
     try {
       await dispatch(createInteraction(form)).unwrap();
       dispatch(showToast({ message: '✅ Interaction logged successfully!', type: 'success' }));
-      setForm(defaultForm);
+      setForm(defaultInteractionForm);
     } catch (err) {
       dispatch(showToast({ message: `Failed to log interaction: ${err}`, type: 'error' }));
     }
@@ -161,7 +168,7 @@ export default function LogForm() {
       </div>
 
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-        <button type="button" className="btn btn-secondary" onClick={() => setForm(defaultForm)}>
+        <button type="button" className="btn btn-secondary" onClick={() => setForm(defaultInteractionForm)}>
           🔄 Reset
         </button>
         <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>

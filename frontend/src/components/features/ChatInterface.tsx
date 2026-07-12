@@ -46,16 +46,30 @@ function ExtractedDataCard({ data }: { data: Record<string, unknown> }) {
   );
 }
 
-export default function ChatInterface() {
+interface ChatInterfaceProps {
+  onExtractedData?: (data: Record<string, unknown>) => void;
+}
+
+export default function ChatInterface({ onExtractedData }: ChatInterfaceProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { messages, loading } = useSelector((s: RootState) => s.chat);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lastProcessedMessage = useRef<string>('');
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (!onExtractedData) return;
+    const assistantMessage = [...messages].reverse().find((msg) => msg.role === 'assistant' && msg.extractedData && Object.keys(msg.extractedData).length > 0);
+    if (assistantMessage && assistantMessage.id !== lastProcessedMessage.current) {
+      lastProcessedMessage.current = assistantMessage.id;
+      onExtractedData(assistantMessage.extractedData!);
+    }
+  }, [messages, onExtractedData]);
 
   const handleSend = async () => {
     const text = input.trim();
