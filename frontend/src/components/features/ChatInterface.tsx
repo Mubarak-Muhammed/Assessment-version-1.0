@@ -147,6 +147,7 @@ export default function ChatInterface({
   const dispatch = useDispatch<AppDispatch>();
   const { messages, loading } = useSelector((s: RootState) => s.chat);
   const [input, setInput] = useState('');
+  const [helperOpen, setHelperOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastProcessedMessage = useRef<string>('');
@@ -265,12 +266,37 @@ export default function ChatInterface({
         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{toolDescription}</div>
       </div>
       {activeTool === 'edit_interaction' && (
-        <div style={{ marginBottom: '12px', padding: '14px', borderRadius: '12px', background: '#faf8ff', border: '1px solid rgba(124, 92, 252, 0.15)' }}>
-          <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px' }}>Editable CRM fields</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-            Use any of these field names in your request: <strong>hcp_name, hospital, specialization, interaction_date, interaction_time, meeting_type, attendees, visit_duration, discussion_topics, products_discussed, objections, competitor_mentioned, materials_shared, samples_distributed, outcomes, follow_up_actions, follow_up_required, follow_up_date, notes, sentiment</strong>.
-          </div>
-          <div style={{ marginTop: '8px', fontSize: '12px' }}><strong>Example:</strong> Edit interaction abc123: update follow_up_actions to schedule a sample delivery call.</div>
+        <div style={{ marginBottom: '12px', borderRadius: '12px', background: '#faf8ff', border: '1px solid rgba(124, 92, 252, 0.15)' }}>
+          <button
+            type="button"
+            onClick={() => setHelperOpen((open) => !open)}
+            style={{
+              width: '100%',
+              textAlign: 'left',
+              padding: '12px 14px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 700,
+            }}
+          >
+            {helperOpen ? '▼' : '▶'} Editable CRM field helper
+          </button>
+          {helperOpen && !input.trim() && (
+            <div style={{ padding: '0 14px 14px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+              <div style={{ marginBottom: '8px' }}>Use any of these field names in your request:</div>
+              <div style={{ lineHeight: '1.6' }}>
+                <strong>hcp_name, hospital, specialization, interaction_date, interaction_time, meeting_type, attendees, visit_duration, discussion_topics, products_discussed, objections, competitor_mentioned, materials_shared, samples_distributed, outcomes, follow_up_actions, follow_up_required, follow_up_date, notes, sentiment</strong>
+              </div>
+              <div style={{ marginTop: '10px' }}><strong>Example:</strong> Edit interaction abc123: update follow_up_actions to schedule a sample delivery call.</div>
+            </div>
+          )}
+          {helperOpen && input.trim() && (
+            <div style={{ padding: '0 14px 14px 14px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+              <div style={{ marginBottom: '8px' }}>Type a request to update a CRM field. This helper is hidden once you start typing.</div>
+            </div>
+          )}
         </div>
       )}
       {/* Input */}
