@@ -22,7 +22,7 @@ function formatToolName(tool: string) {
   return map[tool] || tool;
 }
 
-function parseJsonSafe(value: unknown): Record<string, unknown> | null {
+function parseJsonObject(value: unknown): Record<string, unknown> | null {
   if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
     return value as Record<string, unknown>;
   }
@@ -39,20 +39,66 @@ function parseJsonSafe(value: unknown): Record<string, unknown> | null {
   return null;
 }
 
-function ExtractedDataCard({ data }: { data: Record<string, unknown> }) {
+function extractJsonFromText(text?: string): Record<string, unknown> | null {
+  if (!text || typeof text !== 'string') return null;
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) return null;
+
+  const candidate = text.slice(start, end + 1);
+  return parseJsonObject(candidate);
+}
+
+function normalizeExtractedData(data: unknown, fallbackText?: string): Record<string, unknown> | null {
+  const parsed = parseJsonObject(data);
+  if (parsed) return parsed;
+  const fromText = extractJsonFromText(typeof data === 'string' ? data : undefined);
+  if (fromText) return fromText;
+  if (fallbackText) {
+    const parsedFallback = parseJsonObject(fallbackText);
+    if (parsedFallback) return parsedFallback;
+    return extractJsonFromText(fallbackText);
+  }
+  return null;
+}
+
+function formatValue(value: unknown): string {
+  if (typeof value === 'boolean') return value ? '✅ Yes' : '❌ No';
+  if (Array.isArray(value)) {
+    return value.map((item) => (typeof item === 'object' && item !== null ? JSON.stringify(item) : String(item))).join(', ');
+  }
+  if (typeof value === 'object' && value !== null) {
+    return JSON.stringify(value);
+  }
+  return String(value ?? '');
+}
+
+function flattenExtractedData(value: unknown, prefix = ''): Array<{ key: string; value: string }> {
+  if (Array.isArray(value)) {
+    return [{ key: prefix || 'value', value: formatValue(value) }];
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    return Object.entries(value).flatMap(([key, nested]) =>
+      flattenExtractedData(nested, prefix ? `${prefix}.${key}` : key)
+    );
+  }
+
+  return [{ key: prefix || 'value', value: formatValue(value) }];
+}
+
+function ExtractedDataCard({ data, rawText }: { data?: Record<string, unknown>; rawText?: string }) {
   const rawData = data?.extracted_data || data?.insights || data?.follow_up_plan || data?.summary || data;
-  const flat = parseJsonSafe(rawData) || parseJsonSafe(data?.extracted_data) || parseJsonSafe(data?.insights) || parseJsonSafe(data?.follow_up_plan) || parseJsonSafe(data?.summary) || parseJsonSafe(data);
+  const flatData = normalizeExtractedData(rawData, rawText);
 
-  if (!flat) return null;
+  if (!flatData) return null;
 
-  const rows = Object.entries(flat)
-    .filter(([, v]) => v !== null && v !== undefined && v !== '')
-    .slice(0, 12)
-    .map(([k, v]) => ({
-      key: k.replace(/_/g, ' '),
-      value: typeof v === 'boolean' ? (v ? '✅ Yes' : '❌ No')
-        : Array.isArray(v) ? v.join(', ')
-        : String(v),
+  const rows = flattenExtractedData(flatData)
+    .filter((row) => row.value !== '')
+    .slice(0, 20)
+    .map((row) => ({
+      key: row.key.replace(/_/g, ' '),
+      value: row.value,
     }));
 
   if (!rows.length) return null;
