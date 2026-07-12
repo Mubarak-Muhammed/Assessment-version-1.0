@@ -51,6 +51,8 @@ def agent_chat(data: AgentChatRequest):
         # Extract tool results
         extracted_data: Dict[str, Any] = {}
         tool_used: Optional[str] = None
+        tool_message: Optional[str] = None
+        tool_status: Optional[str] = None
 
         for msg in messages:
             if isinstance(msg, ToolMessage):
@@ -58,6 +60,8 @@ def agent_chat(data: AgentChatRequest):
                 try:
                     parsed = json.loads(msg.content)
                     if isinstance(parsed, dict):
+                        tool_status = parsed.get('status')
+                        tool_message = parsed.get('message') if isinstance(parsed.get('message'), str) else None
                         for key in ('extracted_data', 'data', 'result', 'follow_up_plan', 'insights', 'summary'):
                             if isinstance(parsed.get(key), dict):
                                 extracted_data = parsed[key]
@@ -69,6 +73,9 @@ def agent_chat(data: AgentChatRequest):
                 except Exception:
                     extracted_data = {"raw": msg.content}
                 break  # Use first tool result
+
+        if (tool_status == 'error' or final_response == "I've processed your request.") and tool_message:
+            final_response = tool_message
 
         if extracted_data and tool_used == 'log_interaction':
             payload = {

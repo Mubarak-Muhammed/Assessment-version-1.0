@@ -87,19 +87,26 @@ def edit_interaction(interaction_id: str, field_to_update: str, new_value: str) 
         "follow_up_required", "follow_up_date", "notes", "sentiment",
         "confidence_score", "discussion_topics", "visit_duration"
     ]
+    lower_allowed = [field.lower() for field in allowed_fields]
+    normalized_field = field_to_update.strip().lower()
 
-    if field_to_update not in allowed_fields:
+    if normalized_field not in lower_allowed:
         return json.dumps({
             "status": "error",
-            "message": f"Field '{field_to_update}' is not editable. Allowed fields: {', '.join(allowed_fields)}"
+            "message": (
+                f"The requested field '{field_to_update}' is not supported for editing. "
+                f"Allowed CRM fields are: {', '.join(allowed_fields)}. "
+                "If you meant something else, ask for Doctor Insights, a Follow-Up Plan, or log a new interaction."
+            )
         })
 
+    confirmed_field = allowed_fields[lower_allowed.index(normalized_field)]
     return json.dumps({
         "status": "success",
         "interaction_id": interaction_id,
-        "updated_field": field_to_update,
+        "updated_field": confirmed_field,
         "new_value": new_value,
-        "message": f"✅ Interaction {interaction_id[:8]}... updated: '{field_to_update}' changed to '{new_value}'"
+        "message": f"✅ Interaction {interaction_id[:8]}... updated: '{confirmed_field}' changed to '{new_value}'"
     })
 
 
