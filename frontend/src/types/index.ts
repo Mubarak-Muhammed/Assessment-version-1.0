@@ -4,12 +4,18 @@ export interface Interaction {
   hospital: string;
   specialization?: string;
   interaction_date: string;
+  interaction_time?: string;
   meeting_type: string;
+  attendees?: string;
   visit_duration?: number;
   discussion_topics?: string;
   products_discussed?: string;
   objections?: string;
   competitor_mentioned?: string;
+  materials_shared?: string;
+  samples_distributed?: string;
+  outcomes?: string;
+  follow_up_actions?: string;
   follow_up_required: boolean;
   follow_up_date?: string;
   notes?: string;

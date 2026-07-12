@@ -9,7 +9,7 @@ const SUGGESTIONS = [
   "Get doctor insights for Dr. Rajesh Kumar, Cardiologist",
   "Generate a follow-up plan for my last meeting with Dr. Mehta",
   "Summarize my notes: Met Dr. Singh, discussed side effects of Statinex, he showed interest",
-  "Edit interaction abc123: update sentiment to positive",
+  "Edit interaction abc123: update interaction_time to 19:36 and add follow_up_actions",
 ];
 
 function formatToolName(tool: string) {
@@ -133,6 +133,7 @@ interface ChatInterfaceProps {
   toolLabel?: string;
   toolDescription?: string;
   toolPlaceholder?: string;
+  activeTool?: string;
 }
 
 export default function ChatInterface({
@@ -141,6 +142,7 @@ export default function ChatInterface({
   toolLabel = 'AI Chat',
   toolDescription = 'Use the AI chat to run CRM tools.',
   toolPlaceholder = 'Describe your HCP meeting, ask for insights, or request a follow-up plan...',
+  activeTool,
 }: ChatInterfaceProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { messages, loading } = useSelector((s: RootState) => s.chat);
@@ -262,6 +264,15 @@ export default function ChatInterface({
         <div style={{ fontSize: '13px', fontWeight: 700 }}>{toolLabel}</div>
         <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{toolDescription}</div>
       </div>
+      {activeTool === 'edit_interaction' && (
+        <div style={{ marginBottom: '12px', padding: '14px', borderRadius: '12px', background: '#faf8ff', border: '1px solid rgba(124, 92, 252, 0.15)' }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '8px' }}>Editable CRM fields</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+            Use any of these field names in your request: <strong>hcp_name, hospital, specialization, interaction_date, interaction_time, meeting_type, attendees, visit_duration, discussion_topics, products_discussed, objections, competitor_mentioned, materials_shared, samples_distributed, outcomes, follow_up_actions, follow_up_required, follow_up_date, notes, sentiment</strong>.
+          </div>
+          <div style={{ marginTop: '8px', fontSize: '12px' }}><strong>Example:</strong> Edit interaction abc123: update follow_up_actions to schedule a sample delivery call.</div>
+        </div>
+      )}
       {/* Input */}
       <div className="chat-input-area">
         <div className="chat-input-row">

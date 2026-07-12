@@ -71,9 +71,13 @@ const mapExtractedDataToForm = (data: Record<string, unknown>): Partial<Omit<Int
   setIfPresent('date', 'interaction_date');
   setIfPresent('visit_date', 'interaction_date');
   setIfPresent('meeting_date', 'interaction_date');
+  setIfPresent('interaction_time', 'interaction_time');
+  setIfPresent('time', 'interaction_time');
   setIfPresent('meeting_type', 'meeting_type');
   setIfPresent('visit_type', 'meeting_type');
   setIfPresent('meeting_format', 'meeting_type');
+  setIfPresent('attendees', 'attendees');
+  setIfPresent('participants', 'attendees');
   setIfPresent('visit_duration', 'visit_duration');
   setIfPresent('duration', 'visit_duration');
   setIfPresent('meeting_duration', 'visit_duration');
@@ -90,6 +94,15 @@ const mapExtractedDataToForm = (data: Record<string, unknown>): Partial<Omit<Int
   setIfPresent('competitor_mentioned', 'competitor_mentioned');
   setIfPresent('competitor', 'competitor_mentioned');
   setIfPresent('competitor_product', 'competitor_mentioned');
+  setIfPresent('materials_shared', 'materials_shared');
+  setIfPresent('materials', 'materials_shared');
+  setIfPresent('samples_distributed', 'samples_distributed');
+  setIfPresent('samples', 'samples_distributed');
+  setIfPresent('outcomes', 'outcomes');
+  setIfPresent('key_outcomes', 'outcomes');
+  setIfPresent('follow_up_actions', 'follow_up_actions');
+  setIfPresent('action_items', 'follow_up_actions');
+  setIfPresent('next_steps', 'follow_up_actions');
   setIfPresent('notes', 'notes');
   setIfPresent('summary', 'notes');
   setIfPresent('meeting_summary', 'notes');
@@ -115,8 +128,8 @@ export default function LogInteraction() {
       case 'edit_interaction':
         return {
           label: 'Edit Interaction Tool',
-          description: 'Update an existing interaction field using AI and apply changes to the CRM record.',
-          placeholder: 'Edit interaction 1234: set sentiment to positive and add follow-up notes.',
+          description: 'Update an existing CRM interaction field using AI, including time, attendees, outcomes, and follow-up actions.',
+          placeholder: 'Edit interaction 1234: update attendees to include Dr. Patel and add follow-up actions for product samples.',
         };
       case 'generate_follow_up_plan':
         return {
@@ -224,6 +237,7 @@ export default function LogInteraction() {
             toolLabel={toolConfig.label}
             toolDescription={toolConfig.description}
             toolPlaceholder={toolConfig.placeholder}
+            activeTool={activeTool}
           />
         </div>
       </div>
