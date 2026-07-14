@@ -5,10 +5,8 @@ pydantic-settings
 sqlalchemy
 langchain
 langchain-groq
-langchain-community
 langgraph
 python-dotenv
 groq
-psycopg2-binary
 python-multipart
 firebase-admin

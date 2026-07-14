@@ -1,0 +1,17 @@
+# Ignore local virtual environments
+venv/
+.venv/
+env/
+__pycache__/
+
+# Ignore node modules
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Ignore database file
+*.db
+*.sqlite3
+
+# Ensure we don't upload large git data
+.git/
