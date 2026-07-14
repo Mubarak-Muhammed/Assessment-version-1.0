@@ -51,7 +51,7 @@ const mapExtractedDataToForm = (data: Record<string, unknown>): Partial<Omit<Int
       } else if (field === 'follow_up_required') {
         extracted[field] = ['yes', 'true', 'required', 'needed'].includes(value.toLowerCase());
       } else {
-        extracted[field] = value as any;
+        (extracted as Record<string, unknown>)[field] = value;
       }
     }
   };
