@@ -1,5 +1,5 @@
 fastapi
-uvicorn[standard]
+uvicorn
 pydantic
 pydantic-settings
 sqlalchemy
@@ -9,4 +9,5 @@ langgraph
 python-dotenv
 groq
 python-multipart
-firebase-admin
+google-auth
+requests
