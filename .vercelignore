@@ -3,6 +3,9 @@ venv/
 .venv/
 env/
 __pycache__/
+backend/venv/
+backend/__pycache__/
+backend/crm.db
 
 # Ignore node modules
 node_modules/
