@@ -43,3 +43,8 @@ logs/
 # Database
 *.db
 *.sqlite3
+
+# Firebase / Google Cloud — NEVER commit service account keys
+serviceAccountKey*.json
+*service-account*.json
+*serviceAccount*.json

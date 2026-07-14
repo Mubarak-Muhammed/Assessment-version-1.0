@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     GROQ_API_KEY: Optional[str] = None
     MODEL_NAME: str = "llama-3.1-8b-instant"
     
+    # Firebase / Firestore
+    FIREBASE_PROJECT_ID: str = "assessment-e73af"
+    FIREBASE_SERVICE_ACCOUNT_PATH: Optional[str] = None
+
     # Database (Placeholder)
     DATABASE_URL: Optional[str] = None
     
